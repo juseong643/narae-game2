@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>지수의 빈 자리 — 대화 추리 미스터리</title>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080a0e;
+  --bg2: #0d1018;
+  --card: #11141c;
+  --card2: #181c28;
+  --border: rgba(255,255,255,0.06);
+  --text: #d8dde8;
+  --muted: #6b7280;
+  --red: #e05252;
+  --red2: #ff6b6b;
+  --amber: #d4a017;
+  --green: #3a9e6e;
+  --blue: #4a7fa8;
+  --radius: 12px;
+  --serif: 'Nanum Myeongjo', serif;
+  --sans: 'Nanum Gothic', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  cursor: default;
+}
+
+/* ── 플리커 배경 ── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(224,82,82,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 20% 80%, rgba(74,127,168,0.03) 0%, transparent 50%);
+  pointer-events:none;z-index:0;
+}
+
+/* ── 노이즈 오버레이 ── */
+body::after{
+  content:'';
+  position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;opacity:0.6;
+}
+
+/* ════════ 인트로 화면 ════════ */
+#screen-intro{
+  position:relative;z-index:10;
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:40px 20px;
+  text-align:center;
+}
+
+.intro-tag{
+  font-size:10px;letter-spacing:3px;
+  color:var(--red);font-weight:800;
+  text-transform:uppercase;margin-bottom:24px;
+  animation:blink 2s step-end infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+.intro-title{
+  font-family:var(--serif);
+  font-size:clamp(28px,6vw,52px);
+  font-weight:700;
+  color:#fff;
+  line-height:1.2;
+  margin-bottom:10px;
+  text-shadow:0 0 40px rgba(224,82,82,0.3);
+}
+.intro-title em{color:var(--red2);font-style:normal;}
+
+.intro-sub{
+  font-size:13px;color:var(--muted);
+  margin-bottom:36px;line-height:1.8;
+  max-width:400px;
+}
+
+.intro-card{
+  background:var(--card);
+  border:1px solid rgba(224,82,82,0.2);
+  border-radius:var(--radius);
+  padding:24px 28px;
+  max-width:500px;width:100%;
+  margin-bottom:28px;
+  text-align:left;
+  position:relative;
+  overflow:hidden;
+}
+.intro-card::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(224,82,82,0.5),transparent);
+}
+.intro-card-label{
+  font-size:10px;letter-spacing:2px;color:var(--red);
+  font-weight:800;text-transform:uppercase;margin-bottom:12px;
+}
+.intro-card p{
+  font-family:var(--serif);
+  font-size:14px;line-height:1.9;color:#bbc0cc;
+}
+.intro-card p strong{color:#fff;}
+
+.warning-box{
+  background:rgba(224,82,82,0.05);
+  border:1px solid rgba(224,82,82,0.15);
+  border-radius:8px;padding:12px 16px;
+  max-width:500px;width:100%;
+  margin-bottom:28px;
+  font-size:12px;color:var(--muted);line-height:1.7;
+  text-align:left;
+}
+.warning-box span{color:var(--amber);}
+
+.btn-start{
+  background:linear-gradient(135deg,#8b1a1a,#c0392b);
+  border:none;border-radius:var(--radius);
+  color:#fff;font-family:var(--sans);
+  font-size:15px;font-weight:800;
+  padding:16px 48px;cursor:pointer;
+  letter-spacing:2px;
+  transition:all .25s;
+  position:relative;overflow:hidden;
+}
+.btn-start::after{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.1),transparent);
+}
+.btn-start:hover{
+  transform:translateY(-3px);
+  box-shadow:0 8px 30px rgba(192,57,43,0.5);
+}
+
+/* ════════ 게임 화면 ════════ */
+#screen-game{display:none;position:relative;z-index:10;}
+
+/* 상단 HUD */
+.hud{
+  position:sticky;top:0;z-index:50;
+  background:rgba(8,10,14,0.95);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+  padding:10px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:8px;
+}
+.hud-left{display:flex;align-items:center;gap:10px;}
+.hud-title{font-family:var(--serif);font-size:13px;color:var(--muted);}
+.hud-chapter{
+  font-size:10px;letter-spacing:2px;color:var(--red);
+  font-weight:800;text-transform:uppercase;
+}
+.hud-right{display:flex;gap:14px;align-items:center;}
+.hud-stat{font-size:12px;color:var(--muted);}
+.hud-stat span{font-weight:800;font-size:14px;color:#fff;}
+.hud-stat.green span{color:var(--green);}
+.hud-stat.red span{color:var(--red2);}
+
+/* 진행바 */
+.prog-outer{
+  height:2px;background:rgba(255,255,255,0.05);
+  position:relative;
+}
+.prog-inner{
+  height:100%;background:var(--red);
+  transition:width .6s ease;
+  box-shadow:0 0 8px rgba(224,82,82,0.6);
+}
+
+/* 메인 영역 */
+#gameArea{
+  max-width:720px;margin:0 auto;
+  padding:28px 16px 80px;
+}
+
+/* 챕터 구분자 */
+.chapter-divider{
+  text-align:center;padding:32px 0 20px;
+  animation:fadeUp .4s ease;
+}
+.chapter-divider .ch-num{
+  font-size:10px;letter-spacing:3px;color:var(--red);
+  font-weight:800;text-transform:uppercase;margin-bottom:8px;
+}
+.chapter-divider .ch-title{
+  font-family:var(--serif);font-size:20px;color:#fff;
+  margin-bottom:6px;
+}
+.chapter-divider .ch-desc{
+  font-size:12px;color:var(--muted);line-height:1.7;
+  max-width:400px;margin:0 auto;
+}
+
+/* 사건 카드 */
+.q-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:14px;
+  overflow:hidden;
+  animation:fadeUp .35s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+.q-card-header{
+  padding:14px 18px 0;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.q-num{
+  background:var(--red);color:#fff;
+  font-size:10px;font-weight:800;
+  padding:2px 9px;border-radius:20px;
+  letter-spacing:1px;
+}
+.q-title{
+  font-family:var(--serif);
+  font-size:14px;color:var(--amber);flex:1;
+}
+
+/* 증거/상황 박스 */
+.evidence-box{
+  margin:12px 18px 0;
+  background:rgba(255,255,255,0.02);
+  border-left:2px solid rgba(212,160,23,0.4);
+  padding:10px 14px;border-radius:0 8px 8px 0;
+  font-size:12px;color:var(--muted);line-height:1.7;
+}
+.evidence-box .ev-label{
+  font-size:10px;letter-spacing:2px;
+  color:var(--amber);font-weight:800;
+  text-transform:uppercase;margin-bottom:5px;
+}
+
+/* 채팅 / 증거물 */
+.chat-wrap{
+  margin:12px 18px 0;
+  background:rgba(0,0,0,0.25);
+  border-radius:8px;padding:14px;
+}
+.msg{display:flex;gap:9px;margin-bottom:10px;}
+.msg:last-child{margin-bottom:0;}
+.msg-r{flex-direction:row-reverse;}
+.msg-av{
+  width:30px;height:30px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;flex-shrink:0;
+  background:var(--card2);
+  border:1px solid rgba(255,255,255,0.07);
+}
+.msg-body{flex:1;max-width:85%;}
+.msg-name{font-size:10px;color:var(--muted);font-weight:700;margin-bottom:2px;}
+.msg-r .msg-name{text-align:right;}
+.msg-text{
+  background:var(--card2);
+  padding:8px 12px;
+  border-radius:0 8px 8px 8px;
+  font-size:13px;line-height:1.65;color:var(--text);
+  display:inline-block;
+}
+.msg-r .msg-text{
+  border-radius:8px 0 8px 8px;
+  background:#1a1f2e;
+}
+
+/* 특수 메시지 타입 */
+.msg-system .msg-text{
+  background:rgba(224,82,82,0.08);
+  border:1px solid rgba(224,82,82,0.2);
+  color:#e07070;font-family:var(--serif);
+  font-size:12px;border-radius:8px;
+  font-style:italic;
+}
+.msg-note .msg-text{
+  background:rgba(212,160,23,0.07);
+  border:1px solid rgba(212,160,23,0.2);
+  color:#c8a84a;font-family:var(--serif);
+  font-size:12px;border-radius:8px;
+}
+.msg-deleted .msg-text{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);
+  color:var(--muted);font-size:12px;
+  border-radius:8px;
+  text-decoration:line-through;
+  letter-spacing:1px;
+}
+
+/* 질문 박스 */
+.q-question{
+  margin:14px 18px 0;
+  background:rgba(224,82,82,0.06);
+  border:1px solid rgba(224,82,82,0.18);
+  border-radius:8px;padding:12px 14px;
+}
+.q-qlabel{
+  font-size:10px;letter-spacing:2px;color:var(--red);
+  font-weight:800;text-transform:uppercase;margin-bottom:5px;
+}
+.q-question p{font-size:14px;font-weight:700;line-height:1.55;font-family:var(--serif);}
+
+/* 선택지 */
+.q-choices{padding:10px 18px 0;display:flex;flex-direction:column;gap:7px;}
+.c-btn{
+  background:rgba(255,255,255,0.025);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:8px;padding:10px 13px;
+  text-align:left;color:var(--text);
+  font-family:var(--sans);font-size:13px;
+  cursor:pointer;transition:all .18s;
+  display:flex;align-items:flex-start;gap:9px;
+}
+.c-idx{
+  width:22px;height:22px;border-radius:50%;
+  border:1.5px solid rgba(255,255,255,0.15);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;flex-shrink:0;
+  margin-top:1px;transition:all .18s;
+}
+.c-btn:hover:not(:disabled){
+  background:rgba(58,158,110,0.08);
+  border-color:var(--green);
+}
+.c-btn:hover:not(:disabled) .c-idx{
+  background:var(--green);border-color:var(--green);color:#000;
+}
+.c-btn.correct{background:rgba(58,158,110,0.1);border-color:var(--green);}
+.c-btn.correct .c-idx{background:var(--green);border-color:var(--green);color:#000;}
+.c-btn.wrong{background:rgba(224,82,82,0.07);border-color:var(--red);opacity:.7;}
+.c-btn.wrong .c-idx{background:var(--red);border-color:var(--red);color:#fff;}
+.c-btn:disabled{cursor:default;}
+
+/* 피드백 */
+.q-feedback{
+  margin:10px 18px 18px;
+  padding:12px 14px;border-radius:8px;
+  font-size:13px;line-height:1.7;
+  display:none;
+  font-family:var(--serif);
+}
+.q-feedback.show{display:block;animation:fadeUp .3s ease;}
+.q-feedback.ok{
+  background:rgba(58,158,110,0.08);
+  border:1px solid rgba(58,158,110,0.25);
+  color:#7bcda8;
+}
+.q-feedback.ng{
+  background:rgba(224,82,82,0.06);
+  border:1px solid rgba(224,82,82,0.2);
+  color:#e08080;
+}
+.q-feedback strong{display:block;margin-bottom:4px;font-size:14px;}
+
+/* 다음 버튼 */
+#btnNextWrap{padding:0 16px;max-width:720px;margin:0 auto;}
+.btn-next{
+  display:none;width:100%;padding:14px;
+  background:linear-gradient(135deg,#6b1111,#9b2020);
+  border:none;border-radius:var(--radius);
+  color:#fff;font-family:var(--sans);font-size:14px;font-weight:800;
+  cursor:pointer;transition:all .2s;letter-spacing:2px;
+}
+.btn-next.show{display:block;}
+.btn-next:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(155,32,32,0.5);}
+
+/* ════════ 결과 화면 ════════ */
+#screen-result{
+  display:none;position:relative;z-index:10;
+  min-height:100vh;
+  display:none;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:48px 20px;text-align:center;
+}
+#screen-result.show{display:flex;animation:fadeUp .6s ease;}
+
+.result-label{
+  font-size:10px;letter-spacing:3px;color:var(--red);
+  font-weight:800;text-transform:uppercase;margin-bottom:18px;
+}
+.result-emoji{font-size:56px;margin-bottom:16px;}
+.result-title{
+  font-family:var(--serif);font-size:clamp(22px,5vw,38px);
+  color:#fff;margin-bottom:8px;
+}
+.result-score{
+  font-size:52px;font-weight:800;color:#fff;margin:20px 0;
+}
+.result-score span{color:var(--amber);font-size:32px;}
+
+.result-rank{
+  background:var(--card);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:var(--radius);
+  padding:22px 28px;max-width:500px;width:100%;
+  margin-bottom:24px;
+}
+.result-rank-badge{font-family:var(--serif);font-size:17px;color:var(--green);margin-bottom:6px;font-weight:700;}
+.result-rank-desc{font-size:13px;color:var(--muted);line-height:1.75;}
+
+.result-epilogue{
+  background:rgba(224,82,82,0.04);
+  border:1px solid rgba(224,82,82,0.12);
+  border-radius:var(--radius);
+  padding:20px 24px;max-width:500px;width:100%;
+  margin-bottom:24px;
+  font-family:var(--serif);font-size:14px;
+  color:#bbb;line-height:1.9;
+  text-align:left;
+}
+.result-epilogue .ep-label{
+  font-size:10px;letter-spacing:2px;color:var(--red);
+  font-weight:800;text-transform:uppercase;margin-bottom:10px;
+}
+
+.result-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+.btn-retry{
+  padding:13px 32px;
+  background:linear-gradient(135deg,var(--green),#2a7a54);
+  border:none;border-radius:var(--radius);
+  color:#fff;font-family:var(--sans);font-size:14px;font-weight:800;
+  cursor:pointer;transition:all .2s;
+}
+.btn-retry:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(42,122,84,0.4);}
+.btn-home{
+  padding:13px 32px;
+  background:var(--card2);border:1px solid var(--border);
+  color:var(--text);font-family:var(--sans);font-size:14px;font-weight:800;
+  cursor:pointer;border-radius:var(--radius);transition:all .2s;
+}
+.btn-home:hover{border-color:rgba(255,255,255,0.2);}
+
+@media(max-width:480px){
+  .hud{padding:8px 12px;}
+  #gameArea{padding:20px 12px 60px;}
+  .q-card-header{padding:12px 14px 0;}
+  .evidence-box,.chat-wrap,.q-question,.q-choices,.q-feedback{margin-left:14px;margin-right:14px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════ 인트로 ════════ -->
+<div id="screen-intro">
+  <div class="intro-tag">⚠ 대화 추리 미스터리 · 최상 난이도</div>
+  <h1 class="intro-title"><em>지수</em>의 빈 자리</h1>
+  <p class="intro-sub">어느 월요일 아침, 친구 지수가 학교에 오지 않았다.<br>그리고 아무도 이유를 말해주지 않았다.</p>
+
+  <div class="intro-card">
+    <div class="intro-card-label">📁 사건 개요</div>
+    <p>
+      지난 금요일 저녁, <strong>이지수</strong>가 학교 옥상에서 마지막으로 목격되었다.<br><br>
+      월요일 아침, 나는 지수의 자리에서 구겨진 쪽지를 발견했다.<br>
+      쪽지에는 단 한 줄이 적혀 있었다.<br><br>
+      <strong>「도서관 3번 열람실. 네가 찾아야 해.」</strong><br><br>
+      그날부터 나는 혼자 수사를 시작했다. 대화 기록, 쪽지, 목격자의 말들…<br>
+      모든 단서가 하나의 진실을 향해 있었다.
+    </p>
+  </div>
+
+  <div class="warning-box">
+    <span>⚠ 주의</span> — 이 게임은 대화와 상황에서 <strong>생략된 내용</strong>을 추리하는 최상 난이도예요.<br>
+    단서 키워드는 제공되지 않으며, 대화의 뉘앙스와 맥락 전체를 읽어야 합니다.<br>
+    총 20문제 · 스토리형 · 초등 5학년 이상 권장
+  </div>
+
+  <button class="btn-start" onclick="startGame()">▶ 수사 시작</button>
+</div>
+
+<!-- ════════ 게임 ════════ -->
+<div id="screen-game">
+  <div class="hud">
+    <div class="hud-left">
+      <div class="hud-chapter" id="hudChapter">CHAPTER 1</div>
+      <div class="hud-title" id="hudTitle">지수의 빈 자리</div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-stat">단서 <span id="scoreVal">0</span>점</div>
+      <div class="hud-stat green">정답 <span id="correctVal">0</span></div>
+      <div class="hud-stat">진행 <span id="caseVal">1/20</span></div>
+    </div>
+  </div>
+  <div class="prog-outer"><div class="prog-inner" id="progFill" style="width:0%"></div></div>
+
+  <div id="gameArea"></div>
+  <div id="btnNextWrap">
+    <button class="btn-next" id="btnNext" onclick="nextQ()">다음 단서로 →</button>
+  </div>
+</div>
+
+<!-- ════════ 결과 ════════ -->
+<div id="screen-result">
+  <div class="result-label">🔍 수사 종결</div>
+  <div class="result-emoji" id="rEmoji">🏆</div>
+  <div class="result-title" id="rTitle">진실을 밝혔다</div>
+  <div class="result-score" id="rScore">0<span>점</span></div>
+  <div class="result-rank" id="rRank"></div>
+  <div class="result-epilogue" id="rEpilogue"></div>
+  <div class="result-btns">
+    <button class="btn-retry btn-home" onclick="restart()">🔄 처음부터 다시</button>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════
+   STORY DATA — 20문제 / 5챕터
+══════════════════════════════════ */
+const CHAPTERS = [
+  { num:'CHAPTER 1', title:'월요일 아침 — 빈 자리' },
+  { num:'CHAPTER 2', title:'도서관 3번 열람실' },
+  { num:'CHAPTER 3', title:'금요일 밤의 기록' },
+  { num:'CHAPTER 4', title:'사라진 증거들' },
+  { num:'CHAPTER 5', title:'진실' },
+];
+
+const QS = [
+/* ── Q1 ── */
+{
+  ch:0,
+  title:'지수의 책상에서',
+  ev:'월요일 아침. 지수의 자리는 비어 있다. 담임 선생님이 출석을 부르다 잠시 멈췄다.',
+  chat:[
+    {n:'담임 선생님', av:'👩‍🏫', r:false, t:'…이지수.', type:''},
+    {n:'담임 선생님', av:'👩‍🏫', r:false, t:'(잠시 침묵 후 다음 이름으로 넘어가심)', type:'system'},
+    {n:'뒷자리 민준', av:'👦', r:true, t:'선생님, 지수 오늘 왜 없어요?'},
+    {n:'담임 선생님', av:'👩‍🏫', r:false, t:'…나중에 얘기하자.', type:''},
+  ],
+  q:'선생님이 지수 이름에서 잠시 멈추고 "나중에 얘기하자"고만 한 것에서 생략된 내용으로 가장 알맞은 것은?',
+  cs:[
+    '선생님은 지수가 지각할 것이라는 걸 알고 있다.',
+    '선생님은 지수의 결석 이유를 알고 있지만, 지금 바로 학생들에게 말하기 어려운 상황이라고 짐작할 수 있다.',
+    '선생님은 지수가 누구인지 잊어버렸다.',
+    '선생님은 출석 부르는 것이 귀찮아서 넘어간 것이다.',
+  ],
+  ans:1,
+  ok:'정확해요. 선생님의 침묵과 "나중에"라는 말은 이미 무언가를 알고 있지만 지금 말할 수 없는 상황임을 나타내요.',
+  no:'"나중에 얘기하자"는 말은 지금 말하기 어려운 이유가 있다는 뜻이에요. 선생님의 침묵과 함께 읽어봐요.',
+},
+/* ── Q2 ── */
+{
+  ch:0,
+  title:'복도에서 마주친 은지',
+  ev:'쉬는 시간. 지수와 가장 친한 은지를 복도에서 마주쳤다.',
+  chat:[
+    {n:'나', av:'🧒', r:true, t:'은지야, 지수 왜 안 왔는지 알아?'},
+    {n:'은지', av:'👧', r:false, t:'(시선을 피하며) …몰라.'},
+    {n:'나', av:'🧒', r:true, t:'진짜? 어제도 연락 안 됐어?'},
+    {n:'은지', av:'👧', r:false, t:'(빠르게 걸어가며) 나 수업 있어.'},
+  ],
+  q:'은지가 시선을 피하고 빠르게 자리를 피한 것에서 짐작할 수 있는 내용으로 가장 알맞은 것은?',
+  cs:[
+    '은지는 정말로 지수의 결석 이유를 모른다.',
+    '은지는 무언가를 알고 있지만 말하고 싶지 않거나 말하기 어려운 상황이라고 짐작할 수 있다.',
+    '은지는 나를 싫어해서 피하는 것이다.',
+    '은지는 수업에 늦을까봐 급하게 간 것이다.',
+  ],
+  ans:1,
+  ok:'맞아요. "몰라"라는 대답은 짧고 시선을 피했어요. 아는 사람이 모를 때와 알지만 숨길 때의 행동은 달라요.',
+  no:'은지가 "몰라"라고 말하면서 어떤 행동을 동시에 했는지 살펴봐요. 말과 행동이 일치하나요?',
+},
+/* ── Q3 ── */
+{
+  ch:0,
+  title:'지수의 책상 서랍',
+  ev:'점심시간. 나는 지수의 책상 서랍에서 구겨진 쪽지를 발견했다.',
+  chat:[
+    {n:'쪽지', av:'📝', r:false, t:'도서관 3번 열람실. 네가 찾아야 해.\n— 지수', type:'note'},
+    {n:'나 (속으로)', av:'🧒', r:true, t:'지수가 미리 쪽지를 남겨놓은 거야?', type:'system'},
+    {n:'나 (속으로)', av:'🧒', r:true, t:'근데 왜 나한테? 은지한테는 안 남겼나?', type:'system'},
+  ],
+  q:'"네가 찾아야 해"라는 말에서 생략된 내용으로 가장 알맞은 것은?',
+  cs:[
+    '지수는 나에게 심부름을 시키고 싶었던 것이다.',
+    '지수는 다른 사람(특히 은지)에게는 알리고 싶지 않은 무언가가 있고, 오직 나만 믿고 단서를 숨겨놓았다는 것을 짐작할 수 있다.',
+    '지수는 다른 친구들이 모두 싫었던 것이다.',
+    '지수는 학교 숨바꼭질 게임을 하자고 제안한 것이다.',
+  ],
+  ans:1,
+  ok:'핵심을 짚었어요. "네가"라는 강조는 다른 사람이 아닌 바로 나를 지목한 거예요. 지수에게 특별한 이유가 있다는 게 생략돼 있어요.',
+  no:'"네가 찾아야 해"에서 "네가"라는 말에 집중해봐요. 왜 다른 사람이 아닌 나여야 할까요?',
+},
+/* ── Q4 ── */
+{
+  ch:0,
+  title:'도서관으로 가는 길',
+  ev:'방과 후, 도서관으로 향하던 중 옆 반 친구 태현이와 마주쳤다.',
+  chat:[
+    {n:'태현', av:'👦', r:false, t:'야, 너 지수 친구지?'},
+    {n:'나', av:'🧒', r:true, t:'응, 왜?'},
+    {n:'태현', av:'👦', r:false, t:'(주위를 둘러보며 작은 목소리로) 금요일에 내가 봤거든. 옥상에서.'},
+    {n:'나', av:'🧒', r:true, t:'뭘 봤어?'},
+    {n:'태현', av:'👦', r:false, t:'…그냥 조심해. (빠르게 자리를 뜸)'},
+  ],
+  q:'태현이가 주위를 둘러보고 작은 목소리로 말하다가 "조심해"라는 말만 남기고 떠난 것에서 생략된 내용으로 가장 알맞은 것은?',
+  cs:[
+    '태현이는 학교에서 큰 소리로 말하면 안 된다는 규칙을 지키는 것이다.',
+    '태현이는 자신도 누군가에게 보이거나 들릴까봐 경계하고 있으며, 금요일 옥상에서 본 것이 말하기 위험한 내용임을 짐작할 수 있다.',
+    '태현이는 목이 아파서 작게 말한 것이다.',
+    '태현이는 나를 겁주려고 장난치는 것이다.',
+  ],
+  ans:1,
+  ok:'맞아요. 주위를 살피고 작은 목소리로 말하는 행동은 들켜서는 안 된다는 긴장감을 나타내요. 단순한 장난이 아니에요.',
+  no:'태현이의 행동(주위 살피기, 작은 목소리, 갑자기 자리를 뜸)을 하나하나 연결해봐요.',
+},
+/* ── Q5 ── */
+{
+  ch:1,
+  title:'도서관 3번 열람실',
+  ev:'3번 열람실. 책장 사이에서 지수의 필통이 바닥에 떨어져 있었다.',
+  chat:[
+    {n:'지수 폰 메모앱 (잠금 해제됨)', av:'📱', r:false, t:'금요일 5:47pm\n— 누가 내 사물함을 열었다.\n— 일지가 없어졌다.\n— 걔가 한 거 맞다.', type:'note'},
+    {n:'나 (속으로)', av:'🧒', r:true, t:'일지? 지수가 뭔가 기록하고 있었던 거야?', type:'system'},
+  ],
+  q:'지수가 "걔가 한 거 맞다"라고 쓴 것에서 생략된 내용으로 가장 알맞은 것은?',
+  cs:[
+    '지수는 범인이 누구인지 전혀 모른다.',
+    '지수는 이미 특정 인물을 의심하고 있었고, 사물함에서 일지가 사라진 것이 그 증거라고 생각한 것이다.',
+    '지수는 여러 명이 의심스러워서 이렇게 쓴 것이다.',
+    '지수는 그냥 기분이 나빠서 아무 말이나 쓴 것이다.',
+  ],
+  ans:1,
+  ok:'"걔"라는 말이 핵심이에요. 불특정 다수가 아닌 특정 인물("걔")을 이미 알고 있다는 게 생략돼 있어요.',
+  no:'"걔"는 어떤 의미인가요? 모르는 사람을 "걔"라고 하나요, 아는 사람을 "걔"라고 하나요?',
+},
+/* ── Q6 ── */
+{
+  ch:1,
+  title:'열람실 창가 자리',
+  ev:'창가 자리에 지수가 자주 앉던 자리. 나무 책상에 뭔가 새겨져 있었다.',
+  chat:[
+    {n:'책상에 새겨진 글씨', av:'✏️', r:false, t:'503호는 비어있지 않다', type:'note'},
+    {n:'나 (속으로)', av:'🧒', r:true, t:'503호? 그 방은 오래된 창고 아닌가?', type:'system'},
+    {n:'나 (속으로)', av:'🧒', r:true, t:'지수가 새긴 건지, 다른 누군가가 새긴 건지도 모르겠다.', type:'system'},
+  ],
+  q:'"503호는 비어있지 않다"는 말에서 짐작할 수 있는 내용으로 가장 알맞은 것은?',
+  cs:[
+    '503호에 물건이 많이 쌓여 있다는 단순한 정보이다.',
+    '비어있다고 알려진 503호에 실제로는 누군가 있거나, 숨겨진 것이 있다는 경고 혹은 단서를 남긴 것이다.',
+    '503호 청소가 안 됐다는 의미이다.',
+    '503호에 귀신이 산다는 미신을 새긴 것이다.',
+  ],
+  ans:1,
+  ok:'맞아요. "비어있지 않다"는 표현은 "원래 비어있어야 하는데 그렇지 않다"는 의미예요. 그게 단순한 물건이라면 굳이 책상에 새길 필요가 없었겠죠.',
+  no:'"비어있지 않다"와 "비어있다고 알려진 창고"라는 두 정보를 연결해봐요. 왜 굳이 책상에 새겼을까요?',
+},
+/* ── Q7 ── */
+{
+  ch:1,
+  title:'사서 선생님과의 대화',
+  ev:'도서관 카운터. 사서 선생님에게 지수에 대해 물었다.',
+  chat:[
+    {n:'나', av:'🧒', r:true, t:'선생님, 지수가 지난주에 자주 왔나요? 3번 열람실에서요.'},
+    {n:'사서 선생님', av:'👴', r:false, t:'(잠시 나를 바라보다가) …가끔 왔지.'},
+    {n:'나', av:'🧒', r:true, t:'혼자 왔나요?'},
+    {n:'사서 선생님', av:'👴', r:false, t:'(입을 다물며) 학생, 왜 그걸 알고 싶어?'},
+  ],
+  q:'사서 선생님이 "왜 그걸 알고 싶어?"라고 되물은 것에서 생략된 내용으로 가장 알맞은 것은?',
+  cs:[
+    '사서 선생님은 내가 누구인지 몰라서 확인하는 것이다.',
+    '사서 선생님은 지수에 대해 더 알고 있지만, 나의 의도를 먼저 파악하려 하는 것이다. 함부로 말해선 안 된다고 판단한 것이다.',
+    '사서 선생님은 내가 귀찮아서 대화를 끊으려는 것이다.',
+    '사서 선생님은 지수를 전혀 모르는 것이다.',
+  ],
+  ans:1,
+  ok:'정확해요. 바로 대답하는 대신 되묻는 것은 자신이 가진 정보를 함부로 줄 수 없다는 신중함이에요. 무언가를 알고 있다는 뜻이기도 해요.',
+  no:'선생님이 왜 바로 대답하지 않고 되물었을까요? 모르는 사람은 "몰라"라고 하지, 되묻지는 않아요.',
+},
+/* ── Q8 ── */
+{
+  ch:1,
+  title:'지수의 카카오톡 기록 (은지가 보여줌)',
+  ev:'방과 후, 결국 은지가 나를 잡더니 폰 화면을 내밀었다.',
+  chat:[
+    {n:'은지', av:'👧', r:false, t:'(폰을 내밀며) …봐. 금요일 마지막 대화야.'},
+    {n:'지수 → 은지', av:'💬', r:false, t:'나 오늘 선생님한테 다 말할 것 같아.', type:'note'},
+    {n:'은지 → 지수', av:'💬', r:true, t:'하지 마. 진짜로. 너만 힘들어져.'},
+    {n:'지수 → 은지', av:'💬', r:false, t:'그래도 계속 이러면 안 되잖아.'},
+    {n:'은지 → 지수', av:'💬', r:true, t:'제발.'},
+    {n:'은지', av:'👧', r:false, t:'(폰을 가방에 넣으며) …그 다음엔 연락이 끊겼어.', type:'system'},
+  ],
+  q:'은지가 "너만 힘들어져"라고 말린 것에서 생략된 내용으로 가장 알맞은 것은?',
+  cs:[
+    '은지는 지수가 선생님과 사이가 나쁠 것이라고 예상한 것이다.',
+    '은지는 지수가 말하려는 것이 누군가에게 불이익을 줄 수 있고, 그 결과로 지수 자신이 더 어려운 상황에 처할 것을 알고 있다. 즉 말하려는 내용의 심각성을 알고 있다.',
+    '은지는 선생님을 좋아해서 보호하려는 것이다.',
+    '은지는 지수가 거짓말을 한다고 생각해서 말린 것이다.',
+  ],
+  ans:1,
+  ok:'핵심을 잡았어요. "너만 힘들어져"는 말하면 역효과가 날 수 있다는 걸 은지가 미리 알고 있다는 의미예요. 상황의 심각성을 짐작할 수 있어요.',
+  no:'"너만 힘들어져"라는 말은 왜 힘들어지는지 생략돼 있어요. 말하는 것이 왜 누군가를 힘들게 할 수 있을까요?',
+},
+/* ── Q9 ── */
+{
+  ch:2,
+  title:'금요일 오후의 CCTV 기록 (교감 선생님 발언)',
+  ev:'다음날 아침, 교감 선생님이 전교생에게 방송을 하셨다.',
+  chat:[
+    {n:'교감 선생님 (방송)', av:'🎙️', r:false, t:'안녕하세요. 지난 금요일 방과 후, 3층 복도 CCTV가 고장 나 있었다는 것을 알게 되었습니다.'},
+    {n:'교감 선생님 (방송)', av:'🎙️', r:false, t:'이와 관련해 아는 학생이 있으면 담임 선생님께 말씀해 주시기 바랍니다.'},
+    {n:'옆자리 수현', av:'👧', r:true, t:'(나에게 속삭이며) 3층이면 지수 반 있는 층 아니야?'},
+  ],
+  q:'교감 선생님이 CCTV 고장 사실을 방송으로 알린 것에서 생략된 상황으로 가장 알맞은 것은?',
+  cs:[
+    '학교에서 CCTV가 고장 나는 것은 흔한 일이라 안내한 것이다.',
+    '금요일 방과 후, 3층에서 중요한 일이 있었고 학교 측은 그 장면을 확인하지 못했을 가능성이 높다. 누군가 의도적으로 CCTV를 건드렸을 수도 있다.',
+    '교감 선생님은 CCTV 수리 업체를 찾고 있는 것이다.',
+    '학교에서 학생들에게 CCTV의 존재를 알리는 정기 안내이다.',
+  ],
+  ans:1,
+  ok:'좋은 추리예요. 방송까지 해서 목격자를 찾는다는 건 단순한 기계 고장 이상의 상황이 있다는 뜻이에요. 지수가 마지막으로 목격된 날, 같은 층의 CCTV가 고장났다는 건 우연이 아닐 수 있어요.',
+  no:'CCTV 고장이 왜 방송까지 해서 알릴 중요한 일이 됐는지, 그리고 그게 언제 어느 층인지 연결해봐요.',
+},
+/* ── Q10 ── */
+{
+  ch:2,
+  title:'급식실에서 엿들은 대화',
+  ev:'점심시간, 급식 줄을 서다가 앞에 선 6학년 선배들의 대화가 들렸다.',
+  chat:[
+    {n:'선배 A', av:'🧑', r:false, t:'야, 들었어? 그 애 결국 말했대.'},
+    {n:'선배 B', av:'🧑', r:true, t:'(밥을 뜨다 멈추며) 진짜? 어디서 들었어?'},
+    {n:'선배 A', av:'🧑', r:false, t:'그러니까 사라진 거 아니겠어.'},
+    {n:'선배 B', av:'🧑', r:true, t:'(나를 발견하고 선배 A의 팔을 치며) 쉿.'},
+  ],
+  q:'선배 B가 나를 발견하고 갑자기 선배 A의 팔을 치며 "쉿"이라고 한 것에서 생략된 내용으로 가장 알맞은 것은?',
+  cs:[
+    '선배 B는 급식실에서 큰 소리로 말하면 안 된다는 예절을 지키는 것이다.',
+    '선배들이 나누던 이야기는 내가 들어서는 안 되는 내용이며, 그 이야기는 지수의 실종과 관련이 있을 가능성이 높다.',
+    '선배 B는 나를 알아보고 반갑게 인사한 것이다.',
+    '선배들은 나와 상관없는 다른 학생의 이야기를 하고 있었다.',
+  ],
+  ans:1,
+  ok:'맞아요. 나를 보자마자 대화를 끊는 행동은 내가 들으면 안 되는 이야기였다는 신호예요. 그리고 "말했으니까 사라진 거"라는 말이 지수와 연결되죠.',
+  no:'선배 B가 나를 보기 전과 후의 행동 변화에 주목해봐요. 왜 내가 나타났을 때 갑자기 대화를 멈췄을까요?',
+},
+/* ── Q11 ── */
+{
+  ch:2,
+  title:'지수의 일지 (일부)',
+  ev:'도서관 3번 열람실 책장 뒤에서 얇은 노트가 발견됐다. 지수의 일지였다.',
+  chat:[
+    {n:'일지 — 3월 4일', av:'📔', r:false, t:'또 있었다. 이번엔 분명히 봤어.\n근데 아무도 믿어주지 않아.\n선생님도 그냥 "착각이겠지"라고 했어.', type:'note'},
+    {n:'일지 — 3월 18일', av:'📔', r:false, t:'은지한테 말했더니 제발 그냥 넘어가라고 했어.\n왜 다들 내가 이상한 사람처럼 보는 거야.', type:'note'},
+    {n:'일지 — 4월 2일', av:'📔', r:false, t:'증거를 모았다. 이번엔 다르다.', type:'note'},
+  ],
+  q:'"이번엔 다르다"라는 말에서 생략된 내용으로 가장 알맞은 것은?',
+  cs:[
+    '지수는 이전과 달리 이번에는 이 문제를 포기하려 한다.',
+    '지수는 이전에는 증거 없이 말해서 아무도 믿지 않았지만, 이번에는 구체적인 증거를 갖췄기 때문에 상황이 바뀔 것이라고 기대하고 있다.',
+    '지수는 이번에는 은지에게 다시 말하지 않겠다는 뜻이다.',
+    '지수는 자신이 착각했다는 것을 인정한 것이다.',
+  ],
+  ans:1,
+  ok:'정확해요. "이번엔 다르다"는 이전 실패와의 비교가 생략돼 있어요. 이전에는 믿어주지 않았으니 이번엔 증거로 바꾸겠다는 의지가 담겨있어요.',
+  no:'"다르다"는 건 이전과의 비교예요. 이전에 지수는 어떻게 했고, 그 결과는 어땠는지 일지를 다시 읽어봐요.',
+},
+/* ── Q12 ── */
+{
+  ch:2,
+  title:'담임 선생님이 나를 부르셨다',
+  ev:'오후, 담임 선생님이 조용히 나를 교무실로 부르셨다.',
+  chat:[
+    {n:'담임 선생님', av:'👩‍🏫', r:false, t:'요즘 도서관 자주 가더라.'},
+    {n:'나', av:'🧒', r:true, t:'네, 그냥 책 보러요.'},
+    {n:'담임 선생님', av:'👩‍🏫', r:false, t:'(잠시 나를 바라보다가) 혼자 감당하려 하지 마.'},
+    {n:'나', av:'🧒', r:true, t:'무슨 말씀이세요?'},
+    {n:'담임 선생님', av:'👩‍🏫', r:false, t:'(한숨을 쉬며) …가봐.'},
+  ],
+  q:'선생님이 "혼자 감당하려 하지 마"라고 한 것에서 생략된 내용으로 가장 알맞은 것은?',
+  cs:[
+    '선생님은 내가 도서관에서 공부를 너무 열심히 한다고 걱정하는 것이다.',
+    '선생님은 내가 지수의 실종을 혼자 조사하고 있다는 것을 알고 있으며, 그것이 위험할 수 있다는 경고를 하고 있다.',
+    '선생님은 나에게 숙제를 도와달라고 부탁하는 것이다.',
+    '선생님은 내가 친구들과 사이가 나쁜 것 같아 걱정하는 것이다.',
+  ],
+  ans:1,
+  ok:'핵심을 잡았어요. 선생님이 나의 수사 활동을 이미 알고 있다는 것, 그리고 위험할 수 있다고 판단한다는 것이 생략돼 있어요.',
+  no:'선생님이 도서관 방문을 언급한 것과 "혼자 감당하지 마"를 연결해봐요. 선생님은 내가 무엇을 하는지 알고 있을까요?',
+},
+/* ── Q13 ── */
+{
+  ch:3,
+  title:'503호 앞에서',
+  ev:'방과 후, 503호 창고 앞. 문 앞에 서 있는데 안에서 목소리가 들렸다.',
+  chat:[
+    {n:'목소리 1 (문 너머로)', av:'🚪', r:false, t:'…노트가 없어졌으면 끝난 거 아니야?', type:'system'},
+    {n:'목소리 2 (문 너머로)', av:'🚪', r:true, t:'모르지. 걔가 복사해뒀을 수도 있어.', type:'system'},
+    {n:'목소리 1 (문 너머로)', av:'🚪', r:false, t:'(한숨) 그 친구는 왜 그렇게 혼자 파고드는 거야.', type:'system'},
+  ],
+  q:'"노트가 없어졌으면 끝난 거 아니야?"라는 말에서 생략된 내용으로 가장 알맞은 것은?',
+  cs:[
+    '노트를 잃어버린 것에 대해 걱정하는 대화이다.',
+    '이들은 지수의 일지(노트)가 없어지면 자신들에게 불리한 증거가 사라진다고 생각하고 있으며, 노트의 내용이 자신들과 관련된 것임을 짐작할 수 있다.',
+    '이들은 도서관 노트 분실 사건을 처리하는 중이다.',
+    '이들은 지수가 숙제를 제대로 안 했다고 이야기하는 것이다.',
+  ],
+  ans:1,
+  ok:'정확해요. "끝난 거 아니야?"라는 말은 노트가 자신들에게 위협이 됐다는 뜻이에요. 노트의 내용이 자신들과 관련됐다는 게 생략돼 있어요.',
+  no:'"끝나다"는 무엇이 끝나는 건가요? 노트가 왜 이 사람들에게 중요한 것인지 생각해봐요.',
+},
+/* ── Q14 ── */
+{
+  ch:3,
+  title:'지수에게서 온 문자',
+  ev:'그날 밤, 지수의 번호에서 문자가 왔다.',
+  chat:[
+    {n:'지수', av:'📱', r:false, t:'나 괜찮아. 걱정하지 마.'},
+    {n:'나', av:'🧒', r:true, t:'지수야?? 어디 있어? 지금 어디야?'},
+    {n:'지수', av:'📱', r:false, t:'(읽음 표시만 뜨고 답장 없음)', type:'deleted'},
+  ],
+  q:'"나 괜찮아. 걱정하지 마"라고만 하고 더 이상 답장하지 않은 것에서 짐작할 수 있는 내용으로 가장 알맞은 것은?',
+  cs:[
+    '지수는 정말로 완전히 괜찮고 연락하고 싶지 않은 것이다.',
+    '지수는 괜찮다는 것을 알리고 싶었지만, 어디 있는지나 무슨 일이 있었는지는 말할 수 없는 상황에 처해 있다. 자유롭게 연락할 수 없는 상태일 수 있다.',
+    '지수는 나에게 화가 나서 답장하지 않은 것이다.',
+    '지수의 폰 배터리가 나간 것이다.',
+  ],
+  ans:1,
+  ok:'날카로운 추리예요. "괜찮아"라고 말하면서 "어디 있어?"라는 질문엔 답하지 않는 것은 말할 수 없는 상황이 있다는 신호예요.',
+  no:'지수가 내 질문의 어느 부분에 답하고, 어느 부분에 답하지 않았는지 비교해봐요.',
+},
+/* ── Q15 ── */
+{
+  ch:3,
+  title:'은지의 고백',
+  ev:'다음 날 아침, 은지가 먼저 나를 찾아왔다.',
+  chat:[
+    {n:'은지', av:'👧', r:false, t:'(눈이 빨간 채로) 나 말해야 할 것 같아.'},
+    {n:'나', av:'🧒', r:true, t:'말해.'},
+    {n:'은지', av:'👧', r:false, t:'금요일에 지수가 503호에 들어가는 거 봤어. 누군가랑 같이.'},
+    {n:'나', av:'🧒', r:true, t:'누구랑?'},
+    {n:'은지', av:'👧', r:false, t:'(고개를 숙이며) …선생님이야.'},
+  ],
+  q:'은지가 며칠간 침묵하다가 이제서야 말한 것에서 짐작할 수 있는 내용으로 가장 알맞은 것은?',
+  cs:[
+    '은지는 며칠 동안 이 사실을 몰랐다가 이제 기억해낸 것이다.',
+    '은지는 처음부터 알고 있었지만 선생님이 연루된 사실을 말하는 것이 두렵거나 부담스러워 침묵했고, 더 이상 숨기기 어렵다고 판단해서 말한 것이다.',
+    '은지는 장난으로 나를 놀라게 하려고 꾸며낸 것이다.',
+    '은지는 다른 사람에게 이미 모두 말했고 이제 나에게도 말하는 것이다.',
+  ],
+  ans:1,
+  ok:'맞아요. 처음부터 시선을 피하며 "몰라"라고 했던 은지의 행동이 이제야 설명돼요. 알고 있었지만 말하기 너무 어려운 상황이었던 거예요.',
+  no:'은지가 처음에 왜 모른다고 했는지 처음 장면과 지금을 비교해봐요. 뭐가 달라졌을까요?',
+},
+/* ── Q16 ── */
+{
+  ch:3,
+  title:'관련 선생님의 반응',
+  ev:'은지의 말을 듣고 나는 학교 상담 선생님을 찾아갔다.',
+  chat:[
+    {n:'나', av:'🧒', r:true, t:'선생님, 지수에 대해 드릴 말씀이 있어요.'},
+    {n:'상담 선생님', av:'👩', r:false, t:'(의자를 끌어당기며 앉으라는 손짓)'},
+    {n:'나', av:'🧒', r:true, t:'(지수의 일지 복사본을 내밀며) 이거 보셔야 할 것 같아요.'},
+    {n:'상담 선생님', av:'👩', r:false, t:'(일지를 읽다가 표정이 굳으며) …어디서 났어?'},
+    {n:'상담 선생님', av:'👩', r:false, t:'(폰을 꺼내 들며) 잠깐만 기다려.'},
+  ],
+  q:'상담 선생님이 일지를 읽고 표정이 굳으며 바로 전화를 꺼낸 것에서 짐작할 수 있는 내용으로 가장 알맞은 것은?',
+  cs:[
+    '상담 선생님은 내용이 지루해서 전화로 딴 일을 하는 것이다.',
+    '상담 선생님은 일지의 내용이 심각하다고 판단하고 즉시 다른 어른에게 알려야 한다고 생각한 것이다.',
+    '상담 선생님은 일지가 거짓이라고 확인하려고 전화하는 것이다.',
+    '상담 선생님은 내가 일지를 훔쳤다고 판단해 부모님께 연락하는 것이다.',
+  ],
+  ans:1,
+  ok:'맞아요. 표정이 굳고 바로 전화를 든 것은 이 상황이 혼자 처리할 수 없을 만큼 심각하다는 판단을 나타내요. 즉각적인 행동이 내용의 무게를 보여줘요.',
+  no:'표정이 굳었다는 것과 즉시 전화를 꺼낸 것의 순서를 생각해봐요. 무언가를 급히 알려야 한다는 판단이 있었던 거예요.',
+},
+/* ── Q17 ── */
+{
+  ch:4,
+  title:'사라진 증거들 — 503호 확인',
+  ev:'상담 선생님, 교장 선생님, 나, 은지가 함께 503호 문을 열었다.',
+  chat:[
+    {n:'교장 선생님', av:'👨‍💼', r:false, t:'(문을 열고 들여다보다가 굳은 표정으로) …비어있네.'},
+    {n:'은지', av:'👧', r:true, t:'분명히 봤어요. 여기서 들어가는 걸.'},
+    {n:'교장 선생님', av:'👨‍💼', r:false, t:'(상담 선생님을 보며 작게) 청소됐군.'},
+    {n:'상담 선생님', av:'👩', r:false, t:'(고개를 끄덕이며 눈을 감음)', type:'system'},
+  ],
+  q:'교장 선생님이 "청소됐군"이라고 한 것에서 짐작할 수 있는 내용으로 가장 알맞은 것은?',
+  cs:[
+    '503호를 주기적으로 청소하는 담당자가 마침 청소한 것이다.',
+    '누군가가 이 방에 증거가 있다는 것을 미리 알고, 발견되기 전에 의도적으로 증거를 없앤 것이다.',
+    '교장 선생님은 학교 청소 상태가 좋다고 칭찬하는 것이다.',
+    '503호는 원래 항상 깨끗하게 관리된다.',
+  ],
+  ans:1,
+  ok:'맞아요. "청소됐군"은 단순한 청소가 아니에요. 굳은 표정과 상담 선생님의 반응까지 더하면 의도적으로 증거가 제거됐다는 걸 짐작할 수 있어요.',
+  no:'왜 교장 선생님이 방이 깨끗하다는 사실에 표정이 굳었을까요? 청소가 좋은 일인데 왜 그런 반응이 나왔을까요?',
+},
+/* ── Q18 ── */
+{
+  ch:4,
+  title:'지수에게서 온 두 번째 연락',
+  ev:'저녁. 지수에게서 다시 문자가 왔다.',
+  chat:[
+    {n:'지수', av:'📱', r:false, t:'고마워.'},
+    {n:'나', av:'🧒', r:true, t:'뭐가?'},
+    {n:'지수', av:'📱', r:false, t:'믿어줘서.'},
+    {n:'나', av:'🧒', r:true, t:'지금 어디야? 진짜로.'},
+    {n:'지수', av:'📱', r:false, t:'곧 알게 될 거야.'},
+  ],
+  q:'"곧 알게 될 거야"라는 말에서 짐작할 수 있는 내용으로 가장 알맞은 것은?',
+  cs:[
+    '지수는 아직 어디 있는지 본인도 모른다.',
+    '지수는 현재 위치나 상황을 말하기 어렵지만, 상황이 곧 해결될 것이라는 것을 알고 있다. 즉 학교의 수사가 진행되고 있다는 것을 지수도 알고 있다.',
+    '지수는 나에게 수수께끼를 내는 것이다.',
+    '지수는 연락을 끊기 위해 마지막 말을 남긴 것이다.',
+  ],
+  ans:1,
+  ok:'정확해요. "곧"이라는 말은 시간 개념이 있다는 뜻이에요. 무작정 모르는 게 아니라 무언가가 진행되고 있다는 걸 알고 있는 거예요.',
+  no:'"곧 알게 된다"는 건 무언가가 정해진 것이 있다는 뜻이에요. 그리고 "믿어줘서 고마워"라는 말과 연결해봐요.',
+},
+/* ── Q19 ── */
+{
+  ch:4,
+  title:'교무실 앞에서 들은 말',
+  ev:'다음 날 아침, 교무실 앞을 지나다 문 사이로 대화가 들렸다.',
+  chat:[
+    {n:'목소리 (교무실 안)', av:'🚪', r:false, t:'지수 학생이 교육청에 직접 연락한 것 같습니다.', type:'system'},
+    {n:'다른 목소리', av:'🚪', r:true, t:'(침묵)', type:'system'},
+    {n:'목소리 (교무실 안)', av:'🚪', r:false, t:'일지 원본은 이미 교육청에 제출됐고요.', type:'system'},
+  ],
+  q:'"일지 원본은 이미 교육청에 제출됐고요"라는 말에서 짐작할 수 있는 내용으로 가장 알맞은 것은?',
+  cs:[
+    '지수는 일지를 잃어버린 후 다시 새로 썼다.',
+    '지수는 처음부터 사물함의 노트는 복사본이고, 진짜 원본은 이미 학교 밖의 더 안전한 곳에 보내뒀었다. 즉 사물함이 털릴 것을 예측하고 대비한 것이다.',
+    '사서 선생님이 일지를 보관하고 있다가 제출한 것이다.',
+    '은지가 몰래 교육청에 연락한 것이다.',
+  ],
+  ans:1,
+  ok:'완벽해요. 지수의 일지 3월 2일 기록 "이번엔 다르다"가 바로 이것이었어요. 사물함이 털려도 원본은 이미 안전하게 보낸 뒤였던 거예요.',
+  no:'사물함에서 노트가 사라졌는데 원본이 교육청에 있다는 건 무엇을 의미하나요? 지수는 노트가 없어질 걸 미리 알고 있었던 걸까요?',
+},
+/* ── Q20 ── */
+{
+  ch:4,
+  title:'빈 자리가 돌아오던 날',
+  ev:'이틀 뒤 월요일 아침. 교실 문이 열리고 지수가 들어왔다.',
+  chat:[
+    {n:'지수', av:'👧', r:false, t:'(교실 문을 열고 들어서며 나와 눈이 마주침)'},
+    {n:'지수', av:'👧', r:false, t:'(말없이 작게 고개를 끄덕임)', type:'system'},
+    {n:'담임 선생님', av:'👩‍🏫', r:false, t:'(미소를 지으며) 이지수, 자리에 앉아.'},
+    {n:'나 (속으로)', av:'🧒', r:true, t:'끝난 거야?', type:'system'},
+    {n:'지수', av:'👧', r:false, t:'(지나치며 나에게만 들리게) 고마워.', type:'note'},
+  ],
+  q:'지수가 말 없이 작게 고개를 끄덕인 것에서 짐작할 수 있는 내용으로 가장 알맞은 것은?',
+  cs:[
+    '지수는 나에게 할 말이 없어서 그냥 지나친 것이다.',
+    '지수는 고개 끄덕임으로 "나 돌아왔고, 잘 됐어, 그리고 고마워"라는 여러 감정을 담아 전달한 것이다. 말보다 행동과 표정이 더 많은 것을 전하는 순간이다.',
+    '지수는 인사하는 방법을 모르는 것이다.',
+    '지수는 피곤해서 고개를 숙인 것이다.',
+  ],
+  ans:1,
+  ok:'🎉 마지막 추리까지 완벽해요! 고개 끄덕임 하나에 귀환, 안도, 감사, 그리고 "말하지 않아도 알지?"라는 신뢰가 모두 담겨 있어요. 행동이 말보다 더 많은 것을 전할 수 있다는 이 수업의 핵심이에요.',
+  no:'지수가 왜 말 대신 고개만 끄덕였을까요? 교실 안의 상황, 선생님 앞이라는 것, 그리고 나와의 관계를 모두 고려해봐요.',
+},
+];
+
+/* ══════════════════════════════════
+   STATE
+══════════════════════════════════ */
+let cur=0, score=0, correct=0, answered=false;
+
+function show(id){
+  ['screen-intro','screen-game','screen-result'].forEach(s=>{
+    document.getElementById(s).style.display=(s===id)?((s==='screen-result')?'flex':'block'):'none';
+  });
+}
+
+function startGame(){
+  cur=0;score=0;correct=0;answered=false;
+  document.getElementById('scoreVal').textContent=0;
+  document.getElementById('correctVal').textContent=0;
+  show('screen-game');
+  render();
+  window.scrollTo({top:0});
+}
+
+function render(){
+  const q=QS[cur];
+  answered=false;
+  document.getElementById('btnNext').classList.remove('show');
+
+  // HUD
+  const ch=CHAPTERS[q.ch];
+  document.getElementById('hudChapter').textContent=ch.num;
+  document.getElementById('hudTitle').textContent=ch.title;
+  document.getElementById('caseVal').textContent=`${cur+1}/20`;
+  const pct=Math.round(cur/QS.length*100);
+  document.getElementById('progFill').style.width=pct+'%';
+
+  // 챕터 구분자 (처음이거나 챕터가 바뀔 때)
+  let divHTML='';
+  if(cur===0||(cur>0&&QS[cur].ch!==QS[cur-1].ch)){
+    divHTML=`
+      <div class="chapter-divider">
+        <div class="ch-num">${ch.num}</div>
+        <div class="ch-title">${ch.title}</div>
+      </div>`;
+  }
+
+  // 채팅
+  const chatHTML=q.chat.map(m=>{
+    const extra=m.type?` msg-${m.type}`:'';
+    return `
+      <div class="msg${m.r?' msg-r':''}${extra}">
+        <div class="msg-av">${m.av}</div>
+        <div class="msg-body">
+          <div class="msg-name">${m.n}</div>
+          <div class="msg-text">${m.t.replace(/\n/g,'<br>')}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const choicesHTML=q.cs.map((c,i)=>`
+    <button class="c-btn" onclick="pick(${i})" id="c${i}">
+      <span class="c-idx">${String.fromCharCode(65+i)}</span>
+      <span>${c}</span>
+    </button>`).join('');
+
+  document.getElementById('gameArea').innerHTML=`
+    ${divHTML}
+    <div class="q-card">
+      <div class="q-card-header">
+        <span class="q-num">단서 ${cur+1}</span>
+        <span class="q-title">${q.title}</span>
+      </div>
+      <div class="evidence-box">
+        <div class="ev-label">📍 상황</div>
+        ${q.ev}
+      </div>
+      <div class="chat-wrap">${chatHTML}</div>
+      <div class="q-question">
+        <div class="q-qlabel">🔍 추리 질문</div>
+        <p>${q.q}</p>
+      </div>
+      <div class="q-choices">${choicesHTML}</div>
+      <div class="q-feedback" id="fb"></div>
+    </div>`;
+}
+
+function pick(i){
+  if(answered)return;
+  answered=true;
+  const q=QS[cur];
+  const fb=document.getElementById('fb');
+  document.querySelectorAll('.c-btn').forEach(b=>b.disabled=true);
+  document.getElementById(`c${q.ans}`).classList.add('correct');
+
+  if(i===q.ans){
+    document.getElementById(`c${i}`).classList.add('correct');
+    fb.innerHTML=`<strong>🔍 정확한 추리!</strong>${q.ok}`;
+    fb.className='q-feedback show ok';
+    score+=100;correct++;
+    document.getElementById('scoreVal').textContent=score;
+    document.getElementById('correctVal').textContent=correct;
+  } else {
+    document.getElementById(`c${i}`).classList.add('wrong');
+    fb.innerHTML=`<strong>🕯 단서를 놓쳤어요.</strong>${q.no}<br><br>정답은 <strong>${String.fromCharCode(65+q.ans)}번</strong>이에요.`;
+    fb.className='q-feedback show ng';
+  }
+
+  const btn=document.getElementById('btnNext');
+  btn.textContent=cur===QS.length-1?'🏁 수사를 마무리하다':'다음 단서로 →';
+  btn.classList.add('show');
+}
+
+function nextQ(){
+  cur++;
+  if(cur>=QS.length)showResult();
+  else{render();window.scrollTo({top:0,behavior:'smooth'});}
+}
+
+function showResult(){
+  const pct=Math.round(correct/QS.length*100);
+  let emoji,title,badge,desc,epilogue;
+
+  if(pct>=95){
+    emoji='🏆';title='진실을 밝혀냈다';
+    badge='🥇 전설의 명탐정';
+    desc='20개 단서를 거의 모두 꿰뚫었어요. 말 한 마디, 침묵 하나, 행동 하나에서 생략된 진실을 읽어낸 진짜 추리왕이에요.';
+    epilogue='지수는 학교로 돌아왔다. 교육청 조사가 시작됐고, 503호의 비밀은 결국 드러났다. 아무도 믿어주지 않을 때 혼자 증거를 모은 지수와, 단서 하나하나를 놓치지 않은 당신 덕분이었다.';
+  } else if(pct>=75){
+    emoji='🕵️';title='거의 다 왔다';
+    badge='🥈 베테랑 탐정';
+    desc='대부분의 단서를 잘 읽었어요. 몇 가지 미묘한 뉘앙스만 더 연습하면 완벽한 추리가 될 거예요.';
+    epilogue='지수는 돌아왔다. 일부 단서는 놓쳤지만, 진실의 큰 흐름은 놓치지 않았다. 대화 속에 숨겨진 것들을 읽는 눈이 점점 날카로워지고 있어.';
+  } else if(pct>=50){
+    emoji='🔦';title='단서는 잡았다';
+    badge='🥉 견습 탐정';
+    desc='절반 이상의 단서를 발견했어요. 말과 행동을 같이 읽는 연습을 더 하면 훨씬 좋아질 거예요.';
+    epilogue='진실의 조각들은 모였지만, 일부는 아직 안개 속에 있다. 다시 한번 대화를 천천히 읽어봐. 생략된 것들은 항상 거기 있었으니까.';
+  } else {
+    emoji='🕯';title='어둠 속에서';
+    badge='📖 수습 탐정';
+    desc='처음치고 용감하게 도전했어요. 침묵, 행동, 짧은 말 속에 숨겨진 의미를 찾는 연습을 더 해봐요.';
+    epilogue='지수의 행방은 여전히 안개 속이다. 하지만 포기하지 마. 대화 속의 단서는 사라지지 않아. 다시 처음부터.';
+  }
+
+  document.getElementById('rEmoji').textContent=emoji;
+  document.getElementById('rTitle').textContent=title;
+  document.getElementById('rScore').innerHTML=`${score}<span>점</span>`;
+  document.getElementById('rRank').innerHTML=`
+    <div class="result-rank-badge">${badge}</div>
+    <div class="result-rank-desc">${desc}</div>
+    <div style="margin-top:10px;font-size:12px;color:var(--muted)">정답 ${correct}개 / 20개 (${pct}%)</div>`;
+  document.getElementById('rEpilogue').innerHTML=`
+    <div class="ep-label">📖 에필로그</div>
+    ${epilogue}`;
+  show('screen-result');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function restart(){startGame();}
+show('screen-intro');
+</script>
+</body>
+</html>
